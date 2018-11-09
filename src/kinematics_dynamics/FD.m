@@ -73,9 +73,10 @@ for i=n:-1:1
     %Initialize
     M_hat(1:6,1:6,i)=[Im(1:3,1:3,i),zeros(3,3);zeros(3,3),robot.links(i).mass*eye(3)];
     %Add children contributions
-    for j=find(robot.con.child(:,i))'
-        M_hatii=M_hat(1:6,1:6,j)-psi_hat(1:6,j)*psi(1:6,j)';
-        M_hat(1:6,1:6,i)=M_hat(1:6,1:6,i)+Bij(1:6,1:6,j,i)'*M_hatii*Bij(1:6,1:6,j,i);
+    j=find(robot.con.child(:,i))'; % ! MODIFIED THE ORIGINAL HERE: POSSIBLE ERROR !
+    for k=1:length(j) % ! MODIFIED THE ORIGINAL HERE: POSSIBLE ERROR !
+        M_hatii=M_hat(1:6,1:6,j)-psi_hat(1:6,j)*permute(psi(1:6,j), [2,1,3]);
+        M_hat(1:6,1:6,i)=M_hat(1:6,1:6,i)+permute(Bij(1:6,1:6,j,i), [2,1,3,4])*M_hatii*Bij(1:6,1:6,j,i);
     end
     if robot.joints(i).type==0
         psi_hat(1:6,i)=zeros(6,1);
@@ -88,9 +89,10 @@ end
 %Base-link
 M_hat0=[I0,zeros(3,3);zeros(3,3),robot.base_link.mass*eye(3)];
 %Add children contributions
-for j=find(robot.con.child_base)'
-    M_hat0ii=M_hat(1:6,1:6,j)-psi_hat(1:6,j)*psi(1:6,j)';
-    M_hat0=M_hat0+Bi0(1:6,1:6,j)'*M_hat0ii*Bi0(1:6,1:6,j);
+j=find(robot.con.child_base)'; % ! MODIFIED THE ORIGINAL HERE: POSSIBLE ERROR !
+for k=1:length(j) % ! MODIFIED THE ORIGINAL HERE: POSSIBLE ERROR !
+    M_hat0ii=M_hat(1:6,1:6,j)-psi_hat(1:6,j)*permute(psi(1:6,j), [2,1,3]);
+    M_hat0=M_hat0+permute(Bi0(1:6,1:6,j), [2,1,3])*M_hat0ii*Bi0(1:6,1:6,j);
 end
 psi_hat0=M_hat0*P0;
 
@@ -105,8 +107,9 @@ for i=n:-1:1
     %Initialize
     eta(1:6,i)=zeros(6,1);
     %Add children contributions
-    for j=find(robot.con.child(:,i))'
-        eta(1:6,i)=eta(1:6,i)+Bij(1:6,1:6,j,i)'*(psi(1:6,j)*phi_hat(j)+eta(1:6,j));
+    j=find(robot.con.child(:,i))'; % ! MODIFIED THE ORIGINAL HERE: POSSIBLE ERROR !
+    for k=1:length(j) % ! MODIFIED THE ORIGINAL HERE: POSSIBLE ERROR !
+        eta(1:6,i)=eta(1:6,i)+permute(Bij(1:6,1:6,j,i), [2,1,3,4])*(psi(1:6,j)*phi_hat(j)+eta(1:6,j));
     end
     phi_hat(i)=-pm(1:6,i)'*eta(1:6,i);
     if robot.joints(i).type~=0
@@ -117,8 +120,9 @@ end
 %Base-link
 eta0=zeros(6,1);
 %Add children contributions
-for j=find(robot.con.child_base)'
-    eta0=eta0+Bi0(1:6,1:6,j)'*(psi(1:6,j)*phi_hat(j)+eta(1:6,j));
+j=find(robot.con.child_base)'; % ! MODIFIED THE ORIGINAL HERE: POSSIBLE ERROR !
+for  k=1:length(j) % ! MODIFIED THE ORIGINAL HERE: POSSIBLE ERROR !
+    eta0=eta0+permute(Bi0(1:6,1:6,j), [2,1,3])*(psi(1:6,j)*phi_hat(j)+eta(1:6,j));
 end
 phi_hat0=phi0-P0'*eta0;
 phi_tilde0=(P0'*psi_hat0)\phi_hat0;
